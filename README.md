@@ -13,15 +13,16 @@ This service requires the [decision engine](https://github.com/intvag/decision-e
 
 ## Routes
 
-| Method   | Path                    | Is Authed? | Input         | Output     | Description                                                     |
-|----------|-------------------------|------------|---------------|------------|-----------------------------------------------------------------|
-| `GET`    | `/quote`                | No         | None          | `Quote`    | Create a new quote without any quote items                      |
-| `GET`    | `/quote/:id`            | No         | None          | `Quote`    | Return a quote, with quote items, by ID                         |
-| `POST`   | `/quote/:id`            | No         | `QuoteInput`  | `Quote`    | Get a quote item for the requested device, adding to the quote  |
-| `DELETE` | `/quote/:id/item/:item` | No         | None          | None       | Remove a quote item from the quote                              |
-| `GET`    | `/v1/policy`            | Yes        | None          | `[Policy]` | Return the policies for the logged in user                      |
-| `GET`    | `/v1/policy/:id`        | Yes        | None          | `Policy`   | Return a policy by ID                                           |
-| `POST`   | `/v1/policy`            | Yes        | `PolicyInput` | `Policy`   | Given a `QuoteID` passed via a `PolicyInput`, create a `Policy` |
+| Method   | Path                      | Is Authed? | Input         | Output     | Description                                                                      |
+|----------|---------------------------|------------|---------------|------------|----------------------------------------------------------------------------------|
+| `GET`    | `/quote`                  | No         | None          | `Quote`    | Create a new quote without any quote items                                       |
+| `GET`    | `/quote/:id`              | No         | None          | `Quote`    | Return a quote, with quote items, by ID                                          |
+| `POST`   | `/quote/:id`              | No         | `QuoteInput`  | `Quote`    | Get a quote item for the requested device, adding to the quote                   |
+| `DELETE` | `/quote/:id/item/:item`   | No         | None          | None       | Remove a quote item from the quote                                               |
+| `GET`    | `/v1/policy`              | Yes        | None          | `[Policy]` | Return the policies for the logged in user                                       |
+| `GET`    | `/v1/policy/:id`          | Yes        | None          | `Policy`   | Return a policy by ID                                                            |
+| `POST`   | `/v1/policy`              | Yes        | `PolicyInput` | `Policy`   | Given a `QuoteID` passed via a `PolicyInput`, create a `Policy`                  |
+| `GET`    | `/v1/policy/:id/callback` | No-ish     | None          | None       | Called by payment providers to validate payment of a policy, thus making it live |
 
 
 ### Authentication

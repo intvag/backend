@@ -44,6 +44,8 @@ func New(d *gorm.DB, qc decisions.QuotesClient) (s Server, err error) {
 
 	v1.POST("/policy", s.createPolicy)
 
+	v1.GET("/policy/:policy/callback", s.policyPayment)
+
 	return
 }
 

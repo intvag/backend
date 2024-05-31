@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -14,6 +15,8 @@ type Policy struct {
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
 	DeletedAt *time.Time `json:"-" sql:"index"`
+	IsLive    bool       `json:"is_live"`
+	DocLink   string     `json:"-"`
 
 	Items []PolicyItem `json:"items" gorm:"foreignKey:PolicyID"`
 }
@@ -99,4 +102,65 @@ func (s Server) createPolicy(g *gin.Context) {
 	s.db.Delete(quote, quote.ID)
 
 	g.JSON(http.StatusCreated, p)
+}
+
+func (s Server) policyPayment(g *gin.Context) {
+	// In reality this endpoint will be passed to a payment provider as
+	// a callback address
+	//
+	// The payment provider calls this endpoint, and then this endpoint
+	// does something to validate that ahead of updating the database
+	// to mark the policy as live
+	//
+	// This stage is also where we trigger jobs to generate policy documents
+	// and email them to users
+	id, err := uuid.FromString(g.Param("policy"))
+	if err != nil {
+		g.AbortWithError(http.StatusBadRequest, err)
+
+		return
+	}
+
+	err = s.db.Model(new(Policy)).Where("id = ?", id).Update("IsLive", true).Error
+	if err != nil {
+		g.AbortWithError(http.StatusBadRequest, err)
+
+		return
+	}
+
+	go s.generatePolicyDocs(id)
+
+	g.Status(http.StatusAccepted)
+}
+
+func (s Server) generatePolicyDocs(id uuid.UUID) {
+	policy := new(Policy)
+
+	err := s.db.Model(policy).Preload("Items").Find(policy, "id = ?", id).Error
+	if err != nil {
+		log.Print(err)
+
+		return
+	}
+
+	person := new(Person)
+	err = s.db.Model(person).Find(person, "id = ?", policy.PersonID).Error
+	if err != nil {
+		log.Print(err)
+
+		return
+	}
+
+	doc, err := policy.GeneratePDF(*person)
+	if err != nil {
+		log.Print(err)
+
+		return
+	}
+
+	err = s.db.Model(policy).Where("id = ?", policy.ID).Update("DocLink", doc).Error
+	if err != nil {
+		log.Print(err)
+
+	}
 }
